@@ -1,0 +1,30 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: drupal-pv-volume-1
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: 12Gi
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  hostPath:
+    path: "/apps/rke/data1"
+
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: drupal-pv-volume-2
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: 12Gi
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  hostPath:
+    path: "/apps/rke/data2"

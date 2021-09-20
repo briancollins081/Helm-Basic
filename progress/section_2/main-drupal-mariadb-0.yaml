@@ -1,0 +1,224 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cattle.io/timestamp: "2021-09-19T16:46:07Z"
+    checksum/configuration: 86a6da95bc4e2f407b26ed412f3fc1ca62c6f84e102ea380757c757dc7052e21
+    cni.projectcalico.org/containerID: d6a9af17270ce366b2893b670f3e8dae93f9ca2fa9b0acb14de3c3fdcf40f9bd
+    cni.projectcalico.org/podIP: 10.42.0.40/32
+    cni.projectcalico.org/podIPs: 10.42.0.40/32
+    field.cattle.io/ports: '[[{"containerPort":3306,"dnsName":"main-drupal-site-mariadb","kind":"ClusterIP","name":"mysql","protocol":"TCP"}]]'
+  generateName: main-drupal-site-mariadb-
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: main-drupal-site
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mariadb
+    controller-revision-hash: main-drupal-site-mariadb-84bbdf67b
+    helm.sh/chart: mariadb-9.5.1
+    statefulset.kubernetes.io/pod-name: main-drupal-site-mariadb-0
+  name: main-drupal-site-mariadb-0
+  namespace: default
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: StatefulSet
+    name: main-drupal-site-mariadb
+    uid: bd897e0d-0c2f-48d5-a2bc-039ac4fc1c7a
+  resourceVersion: "356350"
+  uid: 2638918a-3cd2-4ea1-a075-61f82a231718
+spec:
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: primary
+              app.kubernetes.io/instance: main-drupal-site
+              app.kubernetes.io/name: mariadb
+          namespaces:
+          - default
+          topologyKey: kubernetes.io/hostname
+        weight: 1
+  initContainers:
+  - name: mariadb-create-directory-structure
+    image: busybox
+    command:
+      [
+        "sh",
+        "-c",
+        "/bin/mkdir -p /bitnami/mariadb/data && /bin/chmod -R 777 /bitnami/mariadb",
+      ]
+    volumeMounts:
+      - name: mariadb-data
+        mountPath: /bitnami
+  containers:
+  - env:
+    - name: BITNAMI_DEBUG
+      value: "false"
+    - name: MARIADB_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: mariadb-root-password
+          name: main-drupal-site-mariadb
+    - name: MARIADB_USER
+      value: bn_drupal
+    - name: MARIADB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: mariadb-password
+          name: main-drupal-site-mariadb
+    - name: MARIADB_DATABASE
+      value: bitnami_drupal
+    image: docker.io/bitnami/mariadb:10.5.12-debian-10-r32
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      exec:
+        command:
+        - /bin/bash
+        - -ec
+        - |
+          password_aux="${MARIADB_ROOT_PASSWORD:-}"
+          if [[ -f "${MARIADB_ROOT_PASSWORD_FILE:-}" ]]; then
+              password_aux=$(cat "$MARIADB_ROOT_PASSWORD_FILE")
+          fi
+          mysqladmin status -uroot -p"${password_aux}"
+      failureThreshold: 3
+      initialDelaySeconds: 120
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    name: mariadb
+    ports:
+    - containerPort: 3306
+      name: mysql
+      protocol: TCP
+    readinessProbe:
+      exec:
+        command:
+        - /bin/bash
+        - -ec
+        - |
+          password_aux="${MARIADB_ROOT_PASSWORD:-}"
+          if [[ -f "${MARIADB_ROOT_PASSWORD_FILE:-}" ]]; then
+              password_aux=$(cat "$MARIADB_ROOT_PASSWORD_FILE")
+          fi
+          mysqladmin status -uroot -p"${password_aux}"
+      failureThreshold: 3
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources: {}
+    securityContext:
+      runAsUser: 1001
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /bitnami/mariadb
+      name: data
+    - mountPath: /opt/bitnami/mariadb/conf/my.cnf
+      name: config
+      subPath: my.cnf
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-vwpm4
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  hostname: main-drupal-site-mariadb-0
+  nodeName: 161.35.220.74
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 1001
+  serviceAccount: main-drupal-site-mariadb
+  serviceAccountName: main-drupal-site-mariadb
+  subdomain: main-drupal-site-mariadb
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: data-main-drupal-site-mariadb-0
+  - configMap:
+      defaultMode: 420
+      name: main-drupal-site-mariadb
+    name: config
+  - name: kube-api-access-vwpm4
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2021-09-19T17:06:59Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2021-09-19T17:06:59Z"
+    message: 'containers with unready status: [mariadb]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2021-09-19T17:06:59Z"
+    message: 'containers with unready status: [mariadb]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2021-09-19T17:06:59Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: docker://11f07be9e1331cffa904e640cd7f2486b1a1014e285269b34288aadfaf860c63
+    image: bitnami/mariadb:10.5.12-debian-10-r32
+    imageID: docker-pullable://bitnami/mariadb@sha256:7f8d968150f6f1503291e4a2629335903fd3488485e5798c13f7c94710b27c12
+    lastState:
+      terminated:
+        containerID: docker://11f07be9e1331cffa904e640cd7f2486b1a1014e285269b34288aadfaf860c63
+        exitCode: 1
+        finishedAt: "2021-09-19T17:09:59Z"
+        reason: Error
+        startedAt: "2021-09-19T17:09:59Z"
+    name: mariadb
+    ready: false
+    restartCount: 5
+    started: false
+    state:
+      waiting:
+        message: back-off 2m40s restarting failed container=mariadb pod=main-drupal-site-mariadb-0_default(2638918a-3cd2-4ea1-a075-61f82a231718)
+        reason: CrashLoopBackOff
+  hostIP: 10.114.0.2
+  phase: Running
+  podIP: 10.42.0.40
+  podIPs:
+  - ip: 10.42.0.40
+  qosClass: BestEffort
+  startTime: "2021-09-19T17:06:59Z"

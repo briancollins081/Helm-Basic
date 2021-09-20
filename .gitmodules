@@ -1,0 +1,3 @@
+[submodule "learning-helm"]
+	path = learning-helm
+	url = https://github.com/Masterminds/learning-helm.git

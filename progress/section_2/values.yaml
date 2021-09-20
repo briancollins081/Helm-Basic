@@ -1,0 +1,12 @@
+drupalUsername: admin
+drupalPassword: Password1!
+drupalEmail: briancollins081@gmail.com
+mariadb:
+  db: 
+    name: "my-maria-database"
+podSecurityContext:
+  enabled: true
+  fsGroup: 0
+containerSecurityContext:
+  enabled: true
+  runAsUser: 0
