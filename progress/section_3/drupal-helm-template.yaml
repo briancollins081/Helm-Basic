@@ -82,6 +82,37 @@ data:
     socket=/opt/bitnami/mariadb/tmp/mysql.sock
     pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
 ---
+# custom pv
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mysite-drupal-pv-1
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  hostPath:
+    path: "/apps/rke/data"
+
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mysite-drupal-pv-2
+  labels:
+      type: local
+spec:
+  capacity:
+    storage: 25Gi
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  hostPath:
+    path: "/apps/rke/data-2"
+---
 # Source: drupal/templates/pvc.yaml
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -204,7 +235,6 @@ spec:
           - status.localhost
           ip: 127.0.0.1
       # yamllint enable rule:indentation
-      initContainers:
       containers:
         - name: mysite-drupal
           image: docker.io/bitnami/drupal:9.2.6-debian-10-r0
@@ -336,25 +366,25 @@ spec:
         nodeAffinity:
           
       securityContext:
-        fsGroup: 1001
-      initContainers:
-        - name: mariadb-create-directory-structure
-          image: busybox
-          command:
-            [
-              "sh",
-              "-c",
-              "/bin/mkdir -p /bitnami/mariadb/data && /bin/chmod -R 777 /bitnami/mariadb",
-            ]
-          volumeMounts:
-            - name: mariadb-data
-              mountPath: /bitnami
+        fsGroup: 0
+      # initContainers:
+      # - name: mariadb-create-directory-structure
+      #   image: busybox
+      #   command:
+      #     [
+      #       "sh",
+      #       "-c",
+      #       "/bin/mkdir -p /bitnami/mariadb/data && /bin/chmod -R 777 /bitnami/mariadb",
+      #     ]
+      #   volumeMounts:
+      #   - name: mariadb-data
+      #     mountPath: /bitnami
       containers:
         - name: mariadb
           image: docker.io/bitnami/mariadb:10.5.12-debian-10-r32
           imagePullPolicy: "IfNotPresent"
           securityContext:
-            runAsUser: 1001
+            runAsUser: 0
           env:
             - name: BITNAMI_DEBUG
               value: "false"
@@ -433,3 +463,4 @@ spec:
         resources:
           requests:
             storage: "8Gi"
+
