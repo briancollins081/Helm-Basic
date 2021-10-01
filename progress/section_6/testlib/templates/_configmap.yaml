@@ -1,0 +1,13 @@
+{{- define "mylib.configmap.tpl" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "testlib.fullname" . }}
+  labels: 
+    {{- include "testlib.labels" . | nindent 4 }}
+data: {}
+{{- end -}}
+{{- define "mylib.configmap" -}}
+{{- template "mylib.util.merge" (append . "mylib.configmap.tpl") -}}
+{{- end -}}
+
